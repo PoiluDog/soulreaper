@@ -590,7 +590,7 @@ export class Hub{
   async fail(P){await new Promise(r=>setTimeout(r,800));P.af=(P.af||0)+1;this.send(P,{t:"adm",ok:0,err:"Access denied"});if(P.af>=5){this.lock.set(P.ip,Date.now()+900000);try{P.ws.close()}catch(e){}}}
   // Admin: needs (1) the reserved account name AND (2) a secret passphrase, both stored as Cloudflare secrets. Checked here, on the server only.
   async admin(P,m){const E=this.env;
-    if(m.a=="auth"){if(!E.ADMIN_USER||!E.ADMIN_PASS||P.name.toLowerCase()!=String(E.ADMIN_USER).toLowerCase())return this.fail(P);
+    if(m.a=="auth"){const AU=String(E.ADMIN_USER||"Henrisss");if(!E.ADMIN_PASS||P.name.toLowerCase()!=AU.toLowerCase())return this.fail(P);
       if(await safeEq(String(m.k||""),String(E.ADMIN_PASS))){P.admin=true;P.af=0;return this.send(P,{t:"adm",ok:1,god:!!P.god})}return this.fail(P)}
     if(!P.admin)return;
     if(m.a=="god"){P.god=!!m.v;if(P.god)P.hp=100;this.send(P,{t:"adm",ok:1,god:P.god})}
