@@ -67,7 +67,7 @@ canvas{display:block}
 <p style="font-size:12px">WASD move - Shift sprint - Space jump - LMB fire - RMB ability - 1-5 / wheel weapons - R reload - Q dash - E altar - Tab scoreboard</p>
 <button class="btn sm" onclick="logout()">LOG OUT</button></div>
 <div class="ov" id="adm"><h1 style="font-size:36px;color:#ff6a6a;text-shadow:0 0 25px #f00">ADMIN PANEL</h1><div id="admwho" style="color:#9fb4d8;margin:6px"></div>
-<div id="admlock"><input id="admp" type="password" placeholder="Admin passphrase" autocomplete="off" onkeydown="if(event.key=='Enter')admAuth()"><div><button class="btn" onclick="admAuth()">UNLOCK</button></div></div>
+<div id="admlock"><input id="admp" type="password" placeholder="Admin passphrase" autocomplete="off" onkeydown="if(event.key=='Enter')admAuth()"><div><button class="btn" onclick="admAuth()">UNLOCK</button> <button class="btn" id="admset" style="display:none" onclick="admSet()">SET PASSPHRASE</button></div></div>
 <div id="admtools" style="display:none"><button class="btn" id="godb" onclick="admGod()">INVINCIBLE: OFF</button><br><button class="btn" style="background:linear-gradient(#ffb0a0,#ff3a2a);box-shadow:0 0 25px #f338" onclick="admNuke()">LAUNCH NUKE</button></div>
 <div id="adme" style="color:#f88;min-height:26px;margin-top:8px"></div><button class="btn sm" onclick="toggleAdm()">CLOSE (F9)</button></div>
 <div class="ov" id="pause"><h1 style="font-size:44px">PAUSED</h1><button class="btn" onclick="resume()">RESUME</button><button class="btn sm" onclick="toLobby()">LEAVE TO LOBBY</button></div>
@@ -452,8 +452,8 @@ async function lobbyRefresh(){$('ffab').disabled=!me.token;$('who').textContent=
  if(me.token){const r=await api('/api/me',{t:me.token});if(!r.err){me.k=r.k;me.d=r.d;$('who').textContent=me.u+'  -  FFA kills: '+r.k+'  deaths: '+r.d}}
  const l=await api('/api/lb');$('lbt').innerHTML=l.err?l.err:l.length?'<table>'+l.map((x,i)=>'<tr><td>'+(i+1)+'</td><td>'+x.u+'</td><td>'+x.k+'</td></tr>').join('')+'</table>':'No kills yet. Be the first!'}
 function toLobby(){leaveNet();gmd='adv';mode='menu';document.exitPointerLock();clearField();['pause','dead','clear','shop','adm'].forEach(i=>$(i).style.display='none');$('hud').style.display='none';ren.domElement.style.filter='';$('menu').style.display='flex';lobbyRefresh()}
-function leaveNet(){for(const v of VH.values())scene.remove(v.g);VH.clear();drv=0;dv=null;vreq=0;admOn=godOn=false;$('admlock').style.display='block';$('admtools').style.display='none';nukeT=0;$('nuke').style.display='none';if(nukeM)nukeM.visible=false;if(ws){ws.onclose=null;try{ws.close()}catch(e){}ws=null}for(const e of rps.values()){scene.remove(e.g);const i=en.indexOf(e);if(i>=0)en.splice(i,1)}rps.clear();$('kf').innerHTML='';$('sb').style.display='none'}
-function startFFA(){if(!me.token)return;gmd='ffa';leaveNet();reset();S.own=[1,0,0,0,1];S.ab.dash=1;loadFFA();buildBar();buildAbil();myK=myD=0;ffaDead=0;
+function leaveNet(){VM.forEach((w,i)=>w.visible=i==S.w);for(const v of VH.values())scene.remove(v.g);VH.clear();drv=0;dv=null;vreq=0;admOn=godOn=false;$('admlock').style.display='block';$('admtools').style.display='none';nukeT=0;$('nuke').style.display='none';if(nukeM)nukeM.visible=false;if(ws){ws.onclose=null;try{ws.close()}catch(e){}ws=null}for(const e of rps.values()){scene.remove(e.g);const i=en.indexOf(e);if(i>=0)en.splice(i,1)}rps.clear();$('kf').innerHTML='';$('sb').style.display='none'}
+function startFFA(){if(!me.token)return;gmd='ffa';leaveNet();reset();S.own=[1,1,1,1,1];S.ab.dash=1;loadFFA();buildBar();buildAbil();myK=myD=0;ffaDead=0;
  ['menu','dead','pause','shop','clear'].forEach(i=>$(i).style.display='none');$('hud').style.display='block';mode='play';lock();ac().resume();connect();msg("FREE FOR ALL")}
 function connect(){ws=new WebSocket((location.protocol=='https:'?'wss://':'ws://')+location.host+'/ws?t='+me.token);
  ws.onmessage=e=>{const m=JSON.parse(e.data);
@@ -461,7 +461,7 @@ function connect(){ws=new WebSocket((location.protocol=='https:'?'wss://':'ws://
   else if(m.t=='ro'){names={};m.p.forEach(a=>names[a[0]]=a[1])}
   else if(m.t=='st'){snap(m.p);snapV(m.v||[])}
   else if(m.t=='k'){kf(m.a,m.v);if(m.vi==myId){drv=0;dv=null;ffaDead=3.2;msg("ELIMINATED BY "+m.a.toUpperCase());held=false}else if(m.ai==myId){msg("YOU KILLED "+m.v.toUpperCase());snd(900,.2,'sine',.2,1.5)}}
-  else if(m.t=='sp'){P.pos.set(m.x,0,m.z);collide(P.pos,.45);P.vel.set(0,0,0);S.hp=100;S.am=WP.map(w=>w.mag||0);S.rel=0;ffaDead=0;S.own=[1,0,0,0,1];S.nw=-1;S.w=0;VM.forEach((v,i)=>v.visible=i==0);$('wname').textContent=WP[0].n;buildBar()}
+  else if(m.t=='sp'){P.pos.set(m.x,0,m.z);collide(P.pos,.45);P.vel.set(0,0,0);S.hp=100;S.am=WP.map(w=>w.mag||0);S.rel=0;ffaDead=0;S.nw=-1;VM.forEach((v,i)=>v.visible=i==S.w);buildBar()}
   else if(m.t=='vo')vehOk(m);else if(m.t=='adm')admRes(m);else if(m.t=='nk')startNuke();else if(m.t=='nb')nukeBoom();else if(m.t=='dm'){vigA=1;shake+=.3;snd(90,.2,'sawtooth',.2,.5)}};
  ws.onclose=()=>{if(gmd=='ffa'){lobbyNote='  -  Disconnected from FFA server';toLobby()}}}
 function netSend(t){if(!ws||ws.readyState!=1||t-lastSend<66)return;lastSend=t;ws.send(JSON.stringify({t:'s',x:+P.pos.x.toFixed(2),y:+P.pos.y.toFixed(2),z:+P.pos.z.toFixed(2),r:+P.yaw.toFixed(2),p:+P.pitch.toFixed(2),w:S.w}))}
@@ -494,7 +494,7 @@ function remoteUpd(e,dt){const p=e.g.position,k=Math.min(1,dt*12),ox=p.x,oz=p.z;
  const sp=Math.hypot(p.x-ox,p.z-oz)/Math.max(dt,.001);e.ph+=sp*dt*1.5;const a=Math.min(1,sp/4)*.9,sn=Math.sin(e.ph);
  e.l1.rotation.x=sn*a;e.l2.rotation.x=-sn*a;e.k1.rotation.x=Math.max(0,-sn)*a;e.k2.rotation.x=Math.max(0,sn)*a;e.hip.position.y=.95+Math.abs(sn)*.03*a;
  e.a1.rotation.x=e.a2.rotation.x=-1.25-e.pit;e.gun.rotation.x=-e.pit;e.hd.rotation.x=-e.pit*.6;
- if(e.veh){e.hip.position.y=.62;e.l1.rotation.x=e.l2.rotation.x=-1.35;e.k1.rotation.x=e.k2.rotation.x=1.2;e.a1.rotation.x=e.a2.rotation.x=-.9;e.by=1;e.hy=1.5}else{e.by=1.25;e.hy=1.8}
+ if(e.veh){e.hip.position.y=.62;e.l1.rotation.x=e.l2.rotation.x=-1.35;e.k1.rotation.x=e.k2.rotation.x=1.2;e.a1.rotation.x=e.a2.rotation.x=-.9;e.by=1;e.hy=1.5;e.gun.visible=false}else{e.by=1.25;e.hy=1.8;e.gun.visible=true}
  if(e.flash>0){e.flash-=dt;e.m.emissive.setHex(0xaa2222)}else e.m.emissive.setHex(0)}
 // ---------- FFA world ----------
 const VS=[[0,40],[0,-40],[70,70],[-70,-70],[-170,0],[-200,120],[-210,-120],[170,0],[200,110],[210,-110]];const PK=[],VH=new Map();let drv=0,dv=null,vreq=0;
@@ -512,31 +512,44 @@ function buildFFA(){const n0=scene.children.length;col.length=0;BOX.length=0;BLD
   for(let i=0,n=2+(fr()*3|0);i<n;i++){const cx=x+(fr()-.5)*(w-4),cz=z+(fr()-.5)*(d-5),s=1+fr()*.8;if(Math.abs(cx-x)>2.4)B(s,s,s,cx,s/2,cz,crate,1)}
   BLD.push({x,z,w:w+1,d:d+1})};
  for(const[x0,x1,wm,tc] of[[-80,80,stone,0x3ad0ff],[-285,-120,iceW,0x80e0ff],[120,285,obsW,0xff6a10]]){let n=0;for(let i=0;i<80&&n<8;i++){const w=12+fr()*8,d=10+fr()*6,x=x0+w/2+fr()*(x1-x0-w),z=(fr()-.5)*560;if(Math.hypot(x,z)<45||BLD.some(b=>Math.hypot(b.x-x,b.z-z)<38)||VS.some(v=>Math.hypot(x-v[0],z-v[1])<22))continue;bld(x,z,w,d,4.6+fr()*1.4,wm,tc);n++}}
+ // skyscrapers with lit windows
+ const dk=M(0x15181c,.8,.2),wt=lit=>{const c=document.createElement('canvas');c.width=64;c.height=128;const g=c.getContext('2d');g.fillStyle='#10141c';g.fillRect(0,0,64,128);for(let y=0;y<16;y++)for(let x=0;x<8;x++){g.fillStyle=fr()<.55?lit:'#1c2230';g.fillRect(x*8+1,y*8+1,6,5)}const t=new THREE.CanvasTexture(c);t.wrapS=t.wrapT=THREE.RepeatWrapping;return t},wtex=[wt('#ffd98a'),wt('#9fe6ff'),wt('#ff9a4a')],
+ sky=(x,z,w,d,h,ti)=>{const t=wtex[ti].clone();t.needsUpdate=true;t.repeat.set(w/13,h/45);const m=new THREE.MeshStandardMaterial({color:0x2a2e38,roughness:.6,metalness:.4,emissive:0xffffff,emissiveMap:t,emissiveIntensity:.8,map:t});
+  add(new THREE.Mesh(new THREE.BoxGeometry(w,h,d),m),x,h/2,z);BOX.push({x0:x-w/2,x1:x+w/2,z0:z-d/2,z1:z+d/2,h});BLD.push({x,z,w:w+2,d:d+2});add(new THREE.Mesh(new THREE.CylinderGeometry(.15,.3,10,5),dk),x,h+5,z)};
+ for(const[x0,x1,n,ti] of[[-85,85,12,0],[-285,-115,5,1],[115,285,5,2]]){let c=0;for(let i=0;i<120&&c<n;i++){const w=14+fr()*10,d=14+fr()*10,x=x0+w/2+fr()*(x1-x0-w),z=(fr()-.5)*560;if(Math.hypot(x,z)<50||BLD.some(b=>Math.hypot(b.x-x,b.z-z)<40)||VS.some(v=>Math.hypot(x-v[0],z-v[1])<20))continue;sky(x,z,w,d,45+fr()*70,ti);c++}}
  const spread=(x0,x1,n,m,fn)=>{let c=0;for(let i=0;i<n*4&&c<n;i++){const[x,z]=pt(x0,x1);if(!free(x,z,m))continue;c++;fn(x,z)}};let A=[];
  spread(-95,95,60,2,(x,z)=>{const s=.7+fr()*.6;A.push({x,y:2.5*s,z,sx:1,sy:s,sz:1});col.push({x,z,r:.9})});inst(new THREE.CylinderGeometry(.55,.7,5,8),stone,A,1);
  A=[];spread(-95,95,110,1,(x,z)=>{A.push({x,y:.6,z,sx:1,sy:1,sz:1,ry:fr()*6});col.push({x,z,r:.5})});inst(new THREE.BoxGeometry(.8,1.3,.2),stone,A);
- A=[];spread(-95,95,50,1,(x,z)=>{A.push({x,y:3,z,sx:1,sy:1,sz:1});col.push({x,z,r:.5})});inst(new THREE.CylinderGeometry(.12,.35,6,6),wood,A,1);
- A=[];spread(-295,-105,90,2,(x,z)=>{const s=.6+fr()*1.1;A.push({x,y:3*s,z,sx:s*.8,sy:s,sz:s*.8,rx:(fr()-.5)*.3,rz:(fr()-.5)*.3});col.push({x,z,r:.9*s+.3})});inst(new THREE.ConeGeometry(.7,6,5),iceM,A,1);
- const PP=[];spread(-295,-105,70,2,(x,z)=>{PP.push({x,z});col.push({x,z,r:.6})});const pm=(y)=>PP.map(p=>({x:p.x,y,z:p.z,sx:1,sy:1,sz:1}));
+ A=[];spread(-95,95,150,1,(x,z)=>{A.push({x,y:3,z,sx:1,sy:1,sz:1});col.push({x,z,r:.5})});inst(new THREE.CylinderGeometry(.12,.35,6,6),wood,A,1);
+ A=[];spread(-295,-105,140,2,(x,z)=>{const s=.6+fr()*1.1;A.push({x,y:3*s,z,sx:s*.8,sy:s,sz:s*.8,rx:(fr()-.5)*.3,rz:(fr()-.5)*.3});col.push({x,z,r:.9*s+.3})});inst(new THREE.ConeGeometry(.7,6,5),iceM,A,1);
+ const PP=[];spread(-295,-105,220,2,(x,z)=>{PP.push({x,z});col.push({x,z,r:.6})});const pm=(y)=>PP.map(p=>({x:p.x,y,z:p.z,sx:1,sy:1,sz:1}));
  inst(new THREE.CylinderGeometry(.15,.25,1.6,6),wood,pm(.8));inst(new THREE.ConeGeometry(2.1,2.6,8),pineM,pm(2.4),1);inst(new THREE.ConeGeometry(1.5,2.2,8),pineM,pm(3.9),1);
  A=[];spread(-295,-105,40,2,(x,z)=>A.push({x,y:.2,z,sx:2+fr()*3,sy:.6,sz:2+fr()*3}));inst(new THREE.SphereGeometry(1,8,6),snow,A);
  const lk=M(0xbfe6ff,.05,.4,0x103050);for(let i=0;i<9;i++){const[x,z]=pt(-290,-110),r=6+fr()*6;if(!free(x,z,r))continue;const m=new THREE.Mesh(circG,lk);m.rotation.x=-Math.PI/2;m.scale.setScalar(r);m.position.set(x,.05,z);scene.add(m);zn.push({x,z,r:r*.92,t:'ice'})}
- A=[];spread(105,295,80,2,(x,z)=>{const s=.7+fr()*1.2;A.push({x,y:5*s,z,sx:s,sy:s,sz:s});col.push({x,z,r:.8*s+.3})});inst(new THREE.ConeGeometry(.9,10,6),obs,A,1);
+ A=[];spread(105,295,130,2,(x,z)=>{const s=.7+fr()*1.2;A.push({x,y:5*s,z,sx:s,sy:s,sz:s});col.push({x,z,r:.8*s+.3})});inst(new THREE.ConeGeometry(.9,10,6),obs,A,1);
  A=[];spread(105,295,45,2,(x,z)=>{const s=1.2+fr()*2;A.push({x,y:s*.5,z,sx:s,sy:s*.7,sz:s,ry:fr()*3});col.push({x,z,r:s*.9})});inst(new THREE.DodecahedronGeometry(1,0),stone,A,1);
  const lv=new THREE.MeshBasicMaterial({color:0xff5a10});for(let i=0;i<10;i++){const[x,z]=pt(110,290),r=5+fr()*6;if(!free(x,z,r))continue;const m=new THREE.Mesh(circG,lv);m.rotation.x=-Math.PI/2;m.scale.setScalar(r);m.position.set(x,.06,z);scene.add(m)}
  // rocks, bushes, barrels and grass in every biome
  const rockM=[stone,M(0xb8ccdc,.5,.1),M(0x2a2020,.8)];
  for(const[x0,x1,mi] of[[-95,95,0],[-295,-105,1],[105,295,2]]){
-  A=[];spread(x0,x1,70,1.5,(x,z)=>{const s2=.6+fr()*2.2;A.push({x,y:s2*.35,z,sx:s2,sy:s2*.7,sz:s2*(.8+fr()*.5),ry:fr()*6,rx:fr()*.5});if(s2>1.2)col.push({x,z,r:s2*.8})});inst(new THREE.DodecahedronGeometry(1,0),rockM[mi],A,1);
-  A=[];spread(x0,x1,90,1,(x,z)=>{const s2=.7+fr()*.8;A.push({x,y:.5*s2,z,sx:s2,sy:s2*.8,sz:s2})});inst(new THREE.IcosahedronGeometry(.8,0),mi==0?M(0x2d4a24,1):mi==1?M(0xdce8f0,1):M(0x3a1a12,1,0,0x200800),A,1);
-  A=[];spread(x0,x1,14,1.5,(x,z)=>{A.push({x,y:.55,z,sx:1,sy:1,sz:1});col.push({x,z,r:.6})});inst(new THREE.CylinderGeometry(.45,.45,1.1,10),M(mi==2?0x7a2a10:0x3a5a7a,.5,.6),A,1)}
- A=[];spread(-95,95,500,0,(x,z)=>A.push({x,y:.35,z,sx:1,sy:1.2+fr(),sz:1,rx:(fr()-.5)*.4,ry:fr()*6}));inst(new THREE.ConeGeometry(.07,.8,3),M(0x2a3a1a,1),A);
+  A=[];spread(x0,x1,130,1.5,(x,z)=>{const s2=.6+fr()*2.2;A.push({x,y:s2*.35,z,sx:s2,sy:s2*.7,sz:s2*(.8+fr()*.5),ry:fr()*6,rx:fr()*.5});if(s2>1.2)col.push({x,z,r:s2*.8})});inst(new THREE.DodecahedronGeometry(1,0),rockM[mi],A,1);
+  A=[];spread(x0,x1,230,1,(x,z)=>{const s2=.7+fr()*.8;A.push({x,y:.5*s2,z,sx:s2,sy:s2*.8,sz:s2})});inst(new THREE.IcosahedronGeometry(.8,0),mi==0?M(0x2d4a24,1):mi==1?M(0xdce8f0,1):M(0x3a1a12,1,0,0x200800),A,1);
+  A=[];spread(x0,x1,24,1.5,(x,z)=>{A.push({x,y:.55,z,sx:1,sy:1,sz:1});col.push({x,z,r:.6})});inst(new THREE.CylinderGeometry(.45,.45,1.1,10),M(mi==2?0x7a2a10:0x3a5a7a,.5,.6),A,1)}
+ A=[];spread(-95,95,1600,0,(x,z)=>A.push({x,y:.35,z,sx:1,sy:1.2+fr(),sz:1,rx:(fr()-.5)*.4,ry:fr()*6}));inst(new THREE.ConeGeometry(.07,.8,3),M(0x2a3a1a,1),A);
+ // leafy trees, burnt trees, crates, containers, street lamps
+ const T2=[];spread(-95,95,90,3,(x,z)=>{T2.push({x,z});col.push({x,z,r:.7})});
+ inst(new THREE.CylinderGeometry(.25,.4,4.5,7),wood,T2.map(p=>({x:p.x,y:2.25,z:p.z,sx:1,sy:1,sz:1})),1);inst(new THREE.IcosahedronGeometry(2.3,0),M(0x1c3418,1),T2.map(p=>({x:p.x,y:5.6,z:p.z,sx:1,sy:.85,sz:1,ry:fr()*6})),1);
+ A=[];spread(105,295,110,3,(x,z)=>{A.push({x,y:2.6,z,sx:1,sy:1,sz:1});col.push({x,z,r:.6})});inst(new THREE.CylinderGeometry(.18,.38,5.2,6),M(0x120a08,1),A,1);
+ inst(new THREE.ConeGeometry(.9,1.6,6),M(0x401000,.8,0,0xff3a00),A.map(a=>({x:a.x,y:5.6,z:a.z,sx:1,sy:1,sz:1})));
+ const CR=[];spread(-290,290,70,5,(x,z)=>{const n=3+(fr()*3|0);for(let i=0;i<n;i++){const cx=x+(fr()-.5)*4,cz=z+(fr()-.5)*4;CR.push({x:cx,y:.7,z:cz,sx:1.4,sy:1.4,sz:1.4,ry:fr()*6});col.push({x:cx,z:cz,r:1});if(fr()<.35)CR.push({x:cx,y:2.1,z:cz,sx:1.3,sy:1.3,sz:1.3,ry:fr()*6})}});inst(new THREE.BoxGeometry(1,1,1),crate,CR,1);
+ for(const cc of[0x8a2a1a,0x1a4a7a,0x3a6a2a]){const L=[];spread(-290,290,10,5,(x,z)=>{const rz=fr()<.5,w=rz?2.6:6.2,d=rz?6.2:2.6;L.push({x,y:1.3,z,sx:w,sy:2.6,sz:d});BOX.push({x0:x-w/2,x1:x+w/2,z0:z-d/2,z1:z+d/2,h:2.6})});inst(new THREE.BoxGeometry(1,1,1),M(cc,.6,.4),L,1)}
+ const LP=[];spread(-290,290,90,4,(x,z)=>LP.push({x,z}));inst(new THREE.CylinderGeometry(.08,.1,4.2,6),dk,LP.map(p=>({x:p.x,y:2.1,z:p.z,sx:1,sy:1,sz:1})));inst(new THREE.SphereGeometry(.28,8,6),new THREE.MeshBasicMaterial({color:0xffe9b0}),LP.map(p=>({x:p.x,y:4.3,z:p.z,sx:1,sy:1,sz:1})));
  const bd=(c,x,y,z,r,h,sg)=>{const m=new THREE.Mesh(new THREE.ConeGeometry(r,h,sg),new THREE.MeshBasicMaterial({color:c,fog:false}));m.position.set(x,y,z);scene.add(m)};
  bd(0x1a0805,520,110,0,170,240,16);const cr=new THREE.Mesh(new THREE.SphereGeometry(30,12,8),new THREE.MeshBasicMaterial({color:0xff6a20,fog:false}));cr.position.set(520,225,0);cr.scale.y=.4;scene.add(cr);
  bd(0x4a6684,-520,90,-120,140,200,9);bd(0x3e5876,-540,70,140,120,160,9);bd(0x4a6684,-500,80,10,130,180,9);mkAltar(0x66e6ff);
  PK.length=0;const pkc=[0,0xff5a3a,0xffd060,0x66e6ff],pk=(x,z)=>{const r=fr(),i=r<.15?3:r<.55?2:1,g=new THREE.Group(),w=VM[i].clone(true);w.visible=true;w.position.set(0,0,0);w.rotation.set(.3,0,0);w.scale.setScalar(1.3);g.add(w);
   const bm=new THREE.Mesh(new THREE.CylinderGeometry(.35,.35,7,10,1,true),new THREE.MeshBasicMaterial({color:pkc[i],transparent:true,opacity:.28,blending:THREE.AdditiveBlending,depthWrite:false,side:2}));bm.position.y=2.5;g.add(bm);g.position.set(x,1.2,z);scene.add(g);PK.push({g,x,z,i,t:0})};
- BLD.forEach(b=>pk(b.x+(fr()-.5)*(b.w-5),b.z+(fr()-.5)*(b.d-5)));spread(-290,290,16,3,(x,z)=>pk(x,z));
+ 
  FCOL=col.slice();FBOX=BOX.slice();FZN=zn;FFA=scene.children.slice(n0)}
 function loadFFA(){if(!FFA)buildFFA();MOBJ.forEach(a=>a&&a.forEach(o=>o.visible=false));FFA.forEach(o=>o.visible=true);ground.visible=false;col.length=0;col.push(...FCOL);BOX.length=0;BOX.push(...FBOX);ZN=FZN;BND=290;
  scene.fog.density=.011;ren.toneMappingExposure=1.3;PK.forEach(k=>{k.t=0;k.g.visible=true});clearField();W=0;spawnQ=0;P.pos.set(0,0,9);P.vel.set(0,0,0);P.yaw=0;P.pitch=0;S.hp=100;cdv={dash:0,nova:0,heal:0}}
@@ -563,9 +576,9 @@ function mkVeh(id,x){const c=x<-100?0xbfd8ea:x>100?0xb03a1a:0x4f6a3a,g=new THREE
 function snapV(a){for(const r of a){let v=VH.get(r[0]);if(!v){v=mkVeh(r[0],r[1]);v.g.position.set(r[1],0,r[2]);v.g.rotation.y=r[3];VH.set(r[0],v)}v.tx=r[1];v.tz=r[2];v.tr=r[3];v.dr=r[4]}}
 function vehUpd(dt){for(const v of VH.values()){if(v.id==drv)continue;const p=v.g.position,k=Math.min(1,dt*10),ox=p.x,oz=p.z;p.x+=(v.tx-p.x)*k;p.z+=(v.tz-p.z)*k;let d=v.tr-v.g.rotation.y;d=Math.atan2(Math.sin(d),Math.cos(d));v.g.rotation.y+=d*k;v.spin+=Math.hypot(p.x-ox,p.z-oz)/.5;v.g.userData.wh.forEach(w=>w.rotation.x=v.spin)}}
 function vehKey(){if(ffaDead>0||!ws||ws.readyState!=1)return;
- if(drv){const v=VH.get(drv);ws.send('{"t":"vx"}');if(v)P.pos.set(v.g.position.x+Math.cos(dv.r)*2.8,0,v.g.position.z-Math.sin(dv.r)*2.8);collide(P.pos,.45);drv=0;dv=null;P.vel.set(0,0,0);return}
+ if(drv){const v=VH.get(drv);ws.send('{"t":"vx"}');if(v)P.pos.set(v.g.position.x+Math.cos(dv.r)*2.8,0,v.g.position.z-Math.sin(dv.r)*2.8);collide(P.pos,.45);drv=0;dv=null;P.vel.set(0,0,0);VM.forEach((w,i)=>w.visible=i==S.w);return}
  let b=null,bd=6;for(const v of VH.values()){if(v.dr)continue;const d=Math.hypot(v.g.position.x-P.pos.x,v.g.position.z-P.pos.z);if(d<bd){bd=d;b=v}}if(b&&!vreq){vreq=b.id;ws.send('{"t":"ve","id":'+b.id+'}')}}
-function vehOk(m){if(m.ok&&vreq==m.id){const v=VH.get(m.id);if(v){drv=m.id;dv={r:v.g.rotation.y,sp:0};P.pos.set(v.g.position.x,0,v.g.position.z);P.vel.set(0,0,0);P.yaw=dv.r;held=false}}else if(!m.ok)msg("VEHICLE TAKEN");vreq=0}
+function vehOk(m){if(m.ok&&vreq==m.id){const v=VH.get(m.id);if(v){drv=m.id;dv={r:v.g.rotation.y,sp:0};P.pos.set(v.g.position.x,0,v.g.position.z);P.vel.set(0,0,0);P.yaw=dv.r;held=false;VM.forEach(w=>w.visible=false)}}else if(!m.ok)msg("VEHICLE TAKEN");vreq=0}
 function fxStep(dt){for(let i=fx.length-1;i>=0;i--){const f=fx[i];f.life-=dt;if(f.ring){const k=1-f.life/f.l0;f.m.scale.setScalar(1+k*f.size);f.m.material.opacity=1-k}else if(f.tr)f.m.material.opacity=Math.max(0,f.life/f.l0);else{f.v.y-=9*f.g*dt;f.m.position.addScaledVector(f.v,dt)}if(f.life<=0){scene.remove(f.m);fx.splice(i,1)}}}
 function driveStep(dt,t){const v=VH.get(drv);if(!v){drv=0;dv=null;return false}
  const f=(keys.KeyW?1:0)-(keys.KeyS?1:0),s2=(keys.KeyD?1:0)-(keys.KeyA?1:0),bo=keys.ShiftLeft?1.4:1;
@@ -580,7 +593,7 @@ function driveStep(dt,t){const v=VH.get(drv);if(!v){drv=0;dv=null;return false}
  $('souls').textContent=myK+' kills / '+myD+' deaths  (TAB: scoreboard)';if(msgT>0){msgT-=dt;if(msgT<=0)$('msg').style.opacity=0}return true}
 function pickups(dt,t){for(const k of PK){if(k.t>0){k.t-=dt;if(k.t<=0)k.g.visible=true;continue}k.g.rotation.y+=dt*1.5;k.g.position.y=1.2+Math.sin(t*2+k.x)*.15;
  if(Math.abs(k.x-P.pos.x)<1.8&&Math.abs(k.z-P.pos.z)<1.8&&P.pos.y<1.5){S.own[k.i]=1;S.am[k.i]=magMax(k.i);k.g.visible=false;k.t=45;msg("PICKED UP: "+WP[k.i].n);snd(800,.25,'sine',.2,1.6);if(S.w!=k.i)setW(k.i);else buildBar()}}}
-function hintTick(){const h=$('hint');if(gmd!='ffa'||mode!='play'||ffaDead>0){h.style.display='none';return}
+function hintTick(){const h=$('hint');$('cross').style.display=(drv&&gmd=='ffa')?'none':'';if(gmd!='ffa'||mode!='play'||ffaDead>0){h.style.display='none';return}
  if(drv){h.textContent='WASD drive - Shift boost - F exit';h.style.display='block';return}
  let n=false;for(const v of VH.values())if(!v.dr&&Math.hypot(v.g.position.x-P.pos.x,v.g.position.z-P.pos.z)<6){n=true;break}h.textContent='Press F to drive';h.style.display=n?'block':'none'}
 // ---------- Nuke + admin (UI only: every action is validated by the server) ----------
@@ -599,7 +612,8 @@ function admSend(o){if(ws&&ws.readyState==1)ws.send(JSON.stringify(o))}
 function admAuth(){$('adme').textContent='...';admSend({t:'ad',a:'auth',k:$('admp').value});$('admp').value=''}
 function admGod(){admSend({t:'ad',a:'god',v:!godOn})}
 function admNuke(){admSend({t:'ad',a:'nuke'})}
-function admRes(m){if(!m.ok){$('adme').textContent=m.err||'Denied';return}admOn=true;godOn=!!m.god;$('adme').textContent='';$('admlock').style.display='none';$('admtools').style.display='block';$('godb').textContent='INVINCIBLE: '+(godOn?'ON':'OFF')}
+function admSet(){admSend({t:'ad',a:'setup',k:$('admp').value});$('admp').value=''}
+function admRes(m){if(!m.ok){$('adme').textContent=m.err||'Denied';$('admset').style.display=m.setup?'inline-block':'none';return}$('admset').style.display='none';admOn=true;godOn=!!m.god;$('adme').textContent='';$('admlock').style.display='none';$('admtools').style.display='block';$('godb').textContent='INVINCIBLE: '+(godOn?'ON':'OFF')}
 // ---------- Loop ----------
 let last=performance.now();reset();loadMap(0);
 function loop(t){requestAnimationFrame(loop);const dt=Math.min(.05,(t-last)/1000);last=t;
@@ -638,8 +652,13 @@ export class Hub{
   async fail(P,msg){await new Promise(r=>setTimeout(r,800));if(!msg)P.af=(P.af||0)+1;this.send(P,{t:"adm",ok:0,err:msg||"Wrong passphrase"});if(P.af>=5){this.lock.set(P.ip,Date.now()+900000);try{P.ws.close()}catch(e){}}}
   // Admin: needs (1) the reserved account name AND (2) a secret passphrase, both stored as Cloudflare secrets. Checked here, on the server only.
   async admin(P,m){const E=this.env;
-    if(m.a=="auth"){const AU=String(E.ADMIN_USER||"Henrisss");if(P.name.toLowerCase()!=AU.toLowerCase())return this.fail(P,"This account is not the admin account. Log in as "+AU);if(!E.ADMIN_PASS)return this.fail(P,"The ADMIN_PASS secret is not set on the server");
-      if(await safeEq(String(m.k||"").trim(),String(E.ADMIN_PASS).trim())){P.admin=true;P.af=0;return this.send(P,{t:"adm",ok:1,god:!!P.god})}return this.fail(P)}
+    if(m.a=="auth"||m.a=="setup"){const AU=String(E.ADMIN_USER||"Henrisss");if(P.name.toLowerCase()!=AU.toLowerCase())return this.fail(P,"This account is not the admin account. Log in as "+AU);
+      const k=String(m.k||"").trim(),sv=await this.st.storage.get("adm:h");let ok=false;
+      if(E.ADMIN_PASS)ok=await safeEq(k,String(E.ADMIN_PASS).trim());
+      else if(sv)ok=await safeEq(await sha(sv.salt+k),sv.hash);
+      else{if(m.a!="setup"||k.length<8){this.send(P,{t:"adm",ok:0,setup:1,err:k.length&&k.length<8?"Passphrase must be at least 8 characters":"First time: type a new admin passphrase (8+ characters), then click SET PASSPHRASE"});return}
+        const salt=hex(crypto.getRandomValues(new Uint8Array(16)));await this.st.storage.put("adm:h",{salt,hash:await sha(salt+k)});ok=true}
+      if(ok){P.admin=true;P.af=0;return this.send(P,{t:"adm",ok:1,god:!!P.god})}return this.fail(P)}
     if(!P.admin)return;
     if(m.a=="god"){P.god=!!m.v;if(P.god)P.hp=100;this.send(P,{t:"adm",ok:1,god:P.god})}
     if(m.a=="nuke"&&!this.nk){this.bc({t:"nk"});this.nk=setTimeout(()=>{this.nk=0;for(const p of this.pl.values())if(!p.admin&&!p.dead&&p.hp>1)p.hp=1;this.bc({t:"nb"})},5000)}}
