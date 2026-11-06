@@ -522,7 +522,7 @@ function buildFFA(){const n0=scene.children.length;col.length=0;BOX.length=0;BLD
  pt=(a,b)=>[a+fr()*(b-a),(fr()-.5)*580],free=(x,z,m)=>Math.hypot(x,z)>10&&BLD.every(b=>Math.abs(x-b.x)>b.w/2+m&&Math.abs(z-b.z)>b.d/2+m)&&VS.every(v=>Math.hypot(x-v[0],z-v[1])>7)&&roadD(x,z)>3;
  HILLS=[];ROADS=[[-290,0,-46,0],[46,0,290,0],[0,-290,0,-46],[0,46,0,290],[-290,150,290,150],[-290,-150,290,-150]];
  const hl=(x0,x1,n,r0,r1,h0,h1)=>{for(let i=0;i<n;i++){const r=r0+fr()*(r1-r0);HILLS.push({x:x0+fr()*(x1-x0),z:(fr()-.5)*540,r,h:h0+fr()*(h1-h0)})}};
- hl(-90,90,6,30,50,5,13);hl(-290,-120,4,60,90,45,75);hl(-290,-120,5,25,40,8,18);hl(120,290,4,55,80,50,85);hl(120,290,5,25,40,8,18);
+ hl(-90,90,6,30,50,4,9);hl(-290,-120,4,38,58,18,30);hl(-290,-120,5,22,34,4,9);hl(120,290,4,36,52,20,34);hl(120,290,5,22,34,4,9);
  const flatB=(x,z,w,d)=>[[0,0],[1,1],[1,-1],[-1,1],[-1,-1]].every(q=>hAt(x+q[0]*w/2,z+q[1]*d/2)<.5)&&roadD(x,z)>Math.max(w,d)/2+7;
  {const gg=new THREE.PlaneGeometry(600,600,160,160);gg.rotateX(-Math.PI/2);const pa=gg.attributes.position,cc=new Float32Array(pa.count*3),PAL=[[[.15,.22,.12],[.38,.38,.36]],[[.88,.92,.96],[.45,.52,.62]],[[.16,.09,.07],[.3,.22,.2]]];
   for(let i=0;i<pa.count;i++){const x=pa.getX(i),z=pa.getZ(i),h=hAt(x,z);pa.setY(i,h);const sl=(Math.abs(hAt(x+3,z)-h)+Math.abs(hAt(x,z+3)-h))/6,wi=cl((-x-80)/40,0,1),wv=cl((x-80)/40,0,1),wg=Math.max(0,1-wi-wv),rk=Math.min(1,cl((sl-.3)/.5,0,1)*.9+cl(h/80,0,1)*.3);
